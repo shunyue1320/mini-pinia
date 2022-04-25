@@ -1,5 +1,5 @@
 {
-  "name": "mini-pinia",
+  "name": "@mini-pinia/root",
   "version": "0.0.0",
   "description": "🍍 Intuitive, type safe, light and flexible Store for Vue using the composition api with DevTools support",
   "keywords": [
@@ -12,11 +12,6 @@
     "type": "git",
     "url": "git+https://github.com/shunyue1320/mini-pinia.git"
   },
-  "main": "dist/pinia.common.js",
-  "module": "dist/pinia.esm.js",
-  "unpkg": "dist/pinia.js",
-  "browser": "dist/pinia.esm.js",
-  "types": "dist/pinia/src",
   "sideEffects": false,
   "scripts": {
     "build": "pnpm run -r build"
