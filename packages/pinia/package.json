@@ -1,0 +1,27 @@
+{
+  "name": "mini-pinia",
+  "version": "1.0.0",
+  "description": "Intuitive, type safe and flexible Store for Vue",
+  "main": "index.js",
+  "module": "dist/pinia.mjs",
+  "types": "dist/pinia.d.ts",
+  "scripts": {
+    "build": "rimraf dist && rollup -c ../../rollup.config.js --environment TARGET:mini-pinia"
+  },
+  "sideEffects": false,
+  "author": "shunyue1320",
+  "license": "ISC",
+  "devDependencies": {
+    "vue": "^3.2.30"
+  },
+  "peerDependencies": {
+    "@vue/composition-api": "^1.4.0",
+    "typescript": ">=4.4.4",
+    "vue": "^3.2.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  }
+}
