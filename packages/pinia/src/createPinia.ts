@@ -23,11 +23,11 @@ export function createPinia() {
       _p.push(plugin)
       return this
     },
-    _p,
+    _p, // 插件在状态改变便利调用 例如：本地存储插件
     _a: null,
-    state,
-    _e: scope,
-    _s: new Map()
+    state, // 所有的状态
+    _e: scope, // 用来管理这个应用的effectScope
+    _s: new Map() // 记录所有的store
   })
 
   return pinia
