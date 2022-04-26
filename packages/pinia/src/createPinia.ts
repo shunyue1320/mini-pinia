@@ -1,7 +1,9 @@
 import { effectScope, markRaw, reactive, ref } from 'vue'
 import { SymbolPinia, setActivePinia } from './rootStore'
 
+// 用于 main.js 内  app.use( createPinia() )
 export function createPinia() {
+  // true 范围不会被外部effectScope收集和停止
   const scope = effectScope(true)
 
   // run 方法的返回值就是这个fn的返回结果
