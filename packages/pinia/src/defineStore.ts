@@ -69,6 +69,8 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
     }
   }
 
+  // 当用户状态变化的时候 可以监控到变化 并且通知用户 发布订阅
+  let actionSubscribes = []
   const partialStore = {
     $patch,
     // 实现 $subscribe API (订阅状态改变) https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#subscribe
@@ -83,6 +85,12 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
           options
         )
       )
+    },
+    // 实现 $dispose API (清除当前store状态，变成单纯的无状态store对象) https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#dispose
+    $dispose: () => {
+      scope.stop()
+      actionSubscribes = []
+      pinia._s.delete(id) // 删除store, 数据变化了不会在更新视图
     }
   }
   // 每一个store都是一个响应式对象
