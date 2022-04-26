@@ -60,7 +60,7 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
     }
   }
 
-  // 实现 $patch API： https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#patch
+  // 实现 $patch API (作用：批量改变状态)： https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#patch
   function $patch(partialStateOrMutation: any) {
     if (typeof partialStateOrMutation === 'function') {
       partialStateOrMutation(store)
@@ -70,7 +70,20 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
   }
 
   const partialStore = {
-    $patch
+    $patch,
+    // 实现 $subscribe API (订阅状态改变) https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#subscribe
+    $subscribe(callback: Function, options: Object) {
+      scope.run(() =>
+        watch(
+          pinia.state.value[id],
+          state => {
+            // 监控状态变化
+            callback({ type: 'dirct' }, state)
+          },
+          options
+        )
+      )
+    }
   }
   // 每一个store都是一个响应式对象
   const store = reactive(partialStore)
@@ -104,6 +117,8 @@ function createOptionsStore(id: String, options: Object, pinia: Object) {
   }
 
   const store = createSetupStore(id, setup, pinia)
+
+  // 实现 $reset API (作用：恢复到初始状态)：https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#reset
   store.$reset = function () {
     const newState = state ? state() : {}
     store.$patch($state => {
