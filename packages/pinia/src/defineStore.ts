@@ -18,6 +18,7 @@ export function defineStore(idOrOptions: String, setup: any) {
     const isSetupStore = typeof setup === 'function'
 
     function useStore() {
+      // 使用 vue2 时是没有 currentInstance 是没值的，所以需要一个 setActivePinia 来存储 pinia
       const currentInstance = getCurrentInstance()
       // 拿到 main.js 内  app.use( createPinia() ) 时 setActivePinia 的 pinia
       let pinia = currentInstance && inject(SymbolPinia)
@@ -132,8 +133,17 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
   // 每一个store都是一个响应式对象
   const store = reactive(partialStore)
 
+  Object.defineProperty(store, '$state', {
+    get: () => pinia.state.value[id],
+    set: state => $patch($state => Object.assign($state, state))
+  })
+
   // 最终会将处理好的setupStore 放到store的身上
   Object.assign(store, setupStore) // reactive 中放ref 会被拆包  store.count.value
+
+  // 每次 defineStore('xxx', { data: '共享数据' }) 注册状态都会遍历执行所有插件， 添加插件： const pinia = createPinia(); pinia.use(fn)
+  pinia._p.forEach(plugin => Object.assign(store, plugin({ store, pinia, app: pinia._a, id })))
+
   pinia._s.set(id, store)
   return store
 }

@@ -9,7 +9,7 @@ export function createPinia() {
   // run 方法的返回值就是这个fn的返回结果
   const state = scope.run(() => ref({}))
 
-  const _p = []
+  const _p: Array<Function> = []
 
   // markRaw 标记一个对象，使其永远不会转换为代理。返回对象本身。
   const pinia = markRaw({

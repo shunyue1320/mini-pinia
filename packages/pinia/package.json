@@ -1,12 +1,12 @@
 {
-  "name": "mini-pinia",
+  "name": "pinia",
   "version": "1.0.0",
   "description": "Intuitive, type safe and flexible Store for Vue",
   "main": "index.js",
   "module": "dist/pinia.mjs",
   "types": "dist/pinia.d.ts",
   "scripts": {
-    "build": "rimraf dist && rollup -c ../../rollup.config.js --environment TARGET:mini-pinia"
+    "build": "rimraf dist && rollup -c ../../rollup.config.js --environment TARGET:pinia"
   },
   "sideEffects": false,
   "author": "shunyue1320",
