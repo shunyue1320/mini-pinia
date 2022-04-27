@@ -1,5 +1,6 @@
-import { getCurrentInstance, inject, toRefs, computed, reactive, isRef } from 'vue'
+import { effectScope, getCurrentInstance, inject, toRefs, computed, reactive, isRef, watch } from 'vue'
 import { activePinia, SymbolPinia, setActivePinia } from './rootStore'
+import { triggerSubscription, addSubscription } from './pubSub'
 
 // 用于： defineStore('data', { msg: 'state数据' })
 export function defineStore(idOrOptions: String, setup: any) {
@@ -45,12 +46,46 @@ export function defineStore(idOrOptions: String, setup: any) {
 function createSetupStore(id: String, setup: Function, pinia: Object) {
   let scope
   const setupStore = pinia._e.run(() => {
-    scope.effectScope()
+    scope = effectScope()
     return scope.run(() => setup())
   })
 
   function wrapAction(name, action) {
-    return function () {}
+    return function () {
+      // 触发action的时候 可以触发一些额外的逻辑
+      const afterCallbackList: Array<Function> = []
+      const onErrorCallbackList: Array<Function> = []
+      function after(callback: Function) {
+        afterCallbackList.push(callback)
+      }
+      function onError(callback: Function) {
+        onErrorCallbackList.push(callback)
+      }
+
+      // 触发 action 给你传递两个参数
+      triggerSubscription(actionSubscribes, { after, onError, store, name })
+
+      let ret
+      try {
+        ret = action.apply(store, arguments)
+      } catch (error) {
+        triggerSubscription(onErrorCallbackList, error)
+      }
+      if (ret instanceof Promise) {
+        return ret
+          .then(value => {
+            triggerSubscription(afterCallbackList, value)
+          })
+          .catch(error => {
+            triggerSubscription(onErrorCallbackList, error)
+            return Promise.reject(error)
+          })
+      } else {
+        triggerSubscription(afterCallbackList, ret)
+      }
+
+      return ret
+    }
   }
 
   for (const key in setupStore) {
@@ -70,7 +105,7 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
   }
 
   // 当用户状态变化的时候 可以监控到变化 并且通知用户 发布订阅
-  let actionSubscribes = []
+  let actionSubscribes: Array<Function> = []
   const partialStore = {
     $patch,
     // 实现 $subscribe API (订阅状态改变) https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#subscribe
@@ -86,6 +121,7 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
         )
       )
     },
+    $onAction: addSubscription.bind(null, actionSubscribes),
     // 实现 $dispose API (清除当前store状态，变成单纯的无状态store对象) https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#dispose
     $dispose: () => {
       scope.stop()
