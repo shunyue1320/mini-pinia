@@ -56,13 +56,13 @@ export default {
       }
     }),
     resolve(),
-    commonjs()
-    // terser({
-    //   module: true,
-    //   compress: {
-    //     ecma: 2015,
-    //     pure_getters: true
-    //   }
-    // })
+    commonjs(),
+    terser({
+      module: true,
+      compress: {
+        ecma: 2015,
+        pure_getters: true
+      }
+    })
   ]
 }

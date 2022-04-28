@@ -13,35 +13,34 @@ export function defineStore(idOrOptions: any, setup: any) {
   } else {
     options = idOrOptions
     id = idOrOptions.id
+  }
+  // 如果是函数 说明是一个setup语法
+  const isSetupStore = typeof setup === 'function'
 
-    // 如果是函数 说明是一个setup语法
-    const isSetupStore = typeof setup === 'function'
+  function useStore() {
+    // 使用 vue2 时是没有 currentInstance 是没值的，所以需要一个 setActivePinia 来存储 pinia
+    const currentInstance = getCurrentInstance()
+    // 拿到 main.js 内  app.use( createPinia() ) 时 setActivePinia 的 pinia
+    let pinia: Pinia | any = currentInstance && inject(SymbolPinia)
+    if (pinia) {
+      setActivePinia(pinia)
+    }
+    pinia = activePinia
 
-    function useStore() {
-      // 使用 vue2 时是没有 currentInstance 是没值的，所以需要一个 setActivePinia 来存储 pinia
-      const currentInstance = getCurrentInstance()
-      // 拿到 main.js 内  app.use( createPinia() ) 时 setActivePinia 的 pinia
-      let pinia: Pinia | any = currentInstance && inject(SymbolPinia)
-      if (pinia) {
-        setActivePinia(pinia)
+    // 没有该 store 就创建：两种模式 Setup ｜ Options
+    if (!pinia._s.has(id)) {
+      if (isSetupStore) {
+        createSetupStore(id, setup, pinia)
+      } else {
+        createOptionsStore(id, options, pinia)
       }
-      pinia = activePinia
-
-      // 没有该 store 就创建：两种模式 Setup ｜ Options
-      if (!pinia._s.has(id)) {
-        if (isSetupStore) {
-          createSetupStore(id, setup, pinia)
-        } else {
-          createOptionsStore(id, options, pinia)
-        }
-      }
-
-      const store = pinia._s.get(id)
-      return store
     }
 
-    return useStore
+    const store = pinia._s.get(id)
+    return store
   }
+
+  return useStore
 }
 
 function createSetupStore(id: any, setup: Function, pinia: Pinia): any {

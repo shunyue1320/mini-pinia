@@ -1,4 +1,11 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import { createPinia } from 'pinia'
 
-createApp(App).mount('#app')
+const pinia = createPinia()
+
+pinia.use(() => {
+  console.log('我是 pinia 的插件')
+})
+
+createApp(App).use(pinia).mount('#app')

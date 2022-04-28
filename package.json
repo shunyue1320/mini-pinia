@@ -14,7 +14,8 @@
   },
   "sideEffects": false,
   "scripts": {
-    "build": "pnpm run -r build"
+    "build": "pnpm run -r build",
+    "play": "pnpm run -r play"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.8",
