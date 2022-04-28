@@ -1,9 +1,9 @@
-import { effectScope, getCurrentInstance, inject, toRefs, computed, reactive, isRef, watch } from 'vue'
-import { activePinia, SymbolPinia, setActivePinia } from './rootStore'
-import { triggerSubscription, addSubscription } from './pubSub'
+import { effectScope, getCurrentInstance, inject, toRefs, computed, reactive, isRef, watch, EffectScope } from 'vue'
+import { activePinia, SymbolPinia, setActivePinia, Pinia } from './rootStore'
+import { triggerSubscriptions, addSubscription } from './subscriptions'
 
 // 用于： defineStore('data', { msg: 'state数据' })
-export function defineStore(idOrOptions: String, setup: any) {
+export function defineStore(idOrOptions: any, setup: any) {
   let id: String
   let options: Object
 
@@ -21,7 +21,7 @@ export function defineStore(idOrOptions: String, setup: any) {
       // 使用 vue2 时是没有 currentInstance 是没值的，所以需要一个 setActivePinia 来存储 pinia
       const currentInstance = getCurrentInstance()
       // 拿到 main.js 内  app.use( createPinia() ) 时 setActivePinia 的 pinia
-      let pinia = currentInstance && inject(SymbolPinia)
+      let pinia: Pinia | any = currentInstance && inject(SymbolPinia)
       if (pinia) {
         setActivePinia(pinia)
       }
@@ -44,18 +44,18 @@ export function defineStore(idOrOptions: String, setup: any) {
   }
 }
 
-function createSetupStore(id: String, setup: Function, pinia: Object) {
-  let scope
+function createSetupStore(id: any, setup: Function, pinia: Pinia): any {
+  let scope: EffectScope
   const setupStore = pinia._e.run(() => {
     scope = effectScope()
     return scope.run(() => setup())
   })
 
-  function wrapAction(name, action) {
+  function wrapAction(name: any, action: any) {
     return function () {
       // 触发action的时候 可以触发一些额外的逻辑
-      const afterCallbackList: Array<Function> = []
-      const onErrorCallbackList: Array<Function> = []
+      const afterCallbackList: Array<any> = []
+      const onErrorCallbackList: Array<any> = []
       function after(callback: Function) {
         afterCallbackList.push(callback)
       }
@@ -64,25 +64,25 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
       }
 
       // 触发 action 给你传递两个参数
-      triggerSubscription(actionSubscribes, { after, onError, store, name })
+      triggerSubscriptions(actionSubscribes, { after, onError, store, name })
 
       let ret
       try {
         ret = action.apply(store, arguments)
       } catch (error) {
-        triggerSubscription(onErrorCallbackList, error)
+        triggerSubscriptions(onErrorCallbackList, error)
       }
       if (ret instanceof Promise) {
         return ret
           .then(value => {
-            triggerSubscription(afterCallbackList, value)
+            triggerSubscriptions(afterCallbackList, value)
           })
           .catch(error => {
-            triggerSubscription(onErrorCallbackList, error)
+            triggerSubscriptions(onErrorCallbackList, error)
             return Promise.reject(error)
           })
       } else {
-        triggerSubscription(afterCallbackList, ret)
+        triggerSubscriptions(afterCallbackList, ret)
       }
 
       return ret
@@ -106,7 +106,7 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
   }
 
   // 当用户状态变化的时候 可以监控到变化 并且通知用户 发布订阅
-  let actionSubscribes: Array<Function> = []
+  let actionSubscribes: Array<any> = []
   const partialStore = {
     $patch,
     // 实现 $subscribe API (订阅状态改变) https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#subscribe
@@ -135,20 +135,20 @@ function createSetupStore(id: String, setup: Function, pinia: Object) {
 
   Object.defineProperty(store, '$state', {
     get: () => pinia.state.value[id],
-    set: state => $patch($state => Object.assign($state, state))
+    set: state => $patch(($state: any) => Object.assign($state, state))
   })
 
   // 最终会将处理好的setupStore 放到store的身上
   Object.assign(store, setupStore) // reactive 中放ref 会被拆包  store.count.value
 
   // 每次 defineStore('xxx', { data: '共享数据' }) 注册状态都会遍历执行所有插件， 添加插件： const pinia = createPinia(); pinia.use(fn)
-  pinia._p.forEach(plugin => Object.assign(store, plugin({ store, pinia, app: pinia._a, id })))
+  pinia._p.forEach(plugin => Object.assign(store, plugin({ store, pinia, app: pinia._a!, id })))
 
   pinia._s.set(id, store)
   return store
 }
 
-function createOptionsStore(id: String, options: Object, pinia: Object) {
+function createOptionsStore(id: any, options: any, pinia: Pinia) {
   let { state, getters, actions } = options
 
   // setup 作用： 让 state, getters, actions 响应式，并且合并到一个对象里返回
@@ -159,7 +159,7 @@ function createOptionsStore(id: String, options: Object, pinia: Object) {
     return Object.assign(
       localState,
       actions,
-      Object.keys(getters || {}).reduce((computedGetters, name) => {
+      Object.keys(getters || {}).reduce((computedGetters: any, name) => {
         // 计算属性有缓存的性质
         computedGetters[name] = computed(() => {
           // 我们需要获取当前的store是谁
@@ -175,7 +175,7 @@ function createOptionsStore(id: String, options: Object, pinia: Object) {
   // 实现 $reset API (作用：恢复到初始状态)：https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#reset
   store.$reset = function () {
     const newState = state ? state() : {}
-    store.$patch($state => {
+    store.$patch(($state: any) => {
       Object.assign($state, newState)
     })
   }
@@ -183,7 +183,7 @@ function createOptionsStore(id: String, options: Object, pinia: Object) {
 }
 
 // 递归 $patch
-function mergeReactiveObject(target, partialState) {
+function mergeReactiveObject(target: any, partialState: any) {
   for (let key in partialState) {
     // 如果是原型上的不考虑
     if (!partialState.hasOwnProperty(key)) {

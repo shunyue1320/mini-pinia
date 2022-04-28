@@ -1,15 +1,37 @@
 {
+  "include": ["packages/pinia/src/global.d.ts", "packages/*/src/**/*.ts", "packages/*/__tests__/**/*.ts"],
+  "exclude": ["packages/pinia/__tests__/test-utils.ts"],
   "compilerOptions": {
-    "target": "es2017",
-    "module": "esnext",
-    "lib": ["esnext"],
+    "baseUrl": ".",
+    "rootDir": ".",
     "outDir": "dist",
+    "sourceMap": false,
+    "noEmit": true,
+    "paths": {
+      "@pinia/*": ["packages/*/src"],
+      "pinia": ["packages/pinia/src"]
+    },
+
+    "target": "esnext",
+    "module": "esnext",
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "resolveJsonModule": true,
+    "allowJs": false,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true
+
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": false,
+    "strict": true,
+    "isolatedModules": true,
+
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "jsx": "preserve",
+    "lib": ["esnext", "dom"],
+    "types": ["node"]
   }
 }

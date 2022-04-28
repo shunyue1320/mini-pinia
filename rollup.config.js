@@ -1,8 +1,9 @@
 import path from 'path'
-import ts from 'rollup-plugin-typescript2'
+import rpt2 from 'rollup-plugin-typescript2'
 import replace from '@rollup/plugin-replace'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import { terser } from 'rollup-plugin-terser'
 
 if (!process.env.TARGET) {
   throw new Error('TARGET package must be specified via --environment flag.')
@@ -34,7 +35,7 @@ export default {
     }
   },
   plugins: [
-    ts({
+    rpt2({
       check: true,
       tsconfig: path.resolve(__dirname, './tsconfig.json'),
       cacheRoot: path.resolve(__dirname, './node_modules/.rts2_cache'),
@@ -50,17 +51,18 @@ export default {
     replace({
       preventAssignment: true,
       values: {
-        __VERSION__: `"${pkg.version}"`
+        __VERSION__: `"${pkg.version}"`,
+        __DEV__: false
       }
     }),
     resolve(),
-    commonjs(),
-    terser({
-      module: true,
-      compress: {
-        ecma: 2015,
-        pure_getters: true
-      }
-    })
+    commonjs()
+    // terser({
+    //   module: true,
+    //   compress: {
+    //     ecma: 2015,
+    //     pure_getters: true
+    //   }
+    // })
   ]
 }

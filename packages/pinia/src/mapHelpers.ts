@@ -1,5 +1,5 @@
 // 实现 mapState 方法 （作用：只读数据）： https://pinia.vuejs.org/api/modules/pinia.html#mapstate
-export function mapState(useStore, keysOrMapper) {
+export function mapState(useStore: Function, keysOrMapper: any) {
   return Array.isArray(keysOrMapper)
     ? keysOrMapper.reduce((reduced, key) => {
         reduced[key] = function () {
@@ -7,7 +7,7 @@ export function mapState(useStore, keysOrMapper) {
         }
         return reduced
       }, {})
-    : Object.keys(keysOrMapper).reduce((reduced, key) => {
+    : Object.keys(keysOrMapper).reduce((reduced: Record<string, Object>, key) => {
         reduced[key] = function () {
           const store = useStore()
           const storeKey = keysOrMapper[key]
@@ -18,27 +18,27 @@ export function mapState(useStore, keysOrMapper) {
 }
 
 // 实现 mapWritableState 方法 （作用：读写数据）： https://pinia.vuejs.org/api/modules/pinia.html#mapwritablestate
-export function mapWritableState(useStore, keysOrMapper) {
+export function mapWritableState(useStore: Function, keysOrMapper: any) {
   return Array.isArray(keysOrMapper)
     ? keysOrMapper.reduce((reduced, key) => {
         reduced[key] = {
           get() {
             return useStore()[key]
           },
-          set(value) {
+          set(value: any) {
             useStore()[key] = value
           }
         }
         return reduced
       }, {})
-    : Object.keys(keysOrMapper).reduce((reduced, key) => {
+    : Object.keys(keysOrMapper).reduce((reduced: Record<string, Object>, key) => {
         reduced[key] = {
           get() {
             const store = useStore()
             const storeKey = keysOrMapper[key]
             return store[storeKey]
           },
-          set(value) {
+          set(value: any) {
             const store = useStore()
             const storeKey = keysOrMapper[key]
             store[storeKey] = value
@@ -49,16 +49,16 @@ export function mapWritableState(useStore, keysOrMapper) {
 }
 
 // 实现 mapActions 方法： https://pinia.vuejs.org/api/modules/pinia.html#mapactions
-export function mapActions(useStore, keysOrMapper) {
+export function mapActions(useStore: Function, keysOrMapper: any) {
   return Array.isArray(keysOrMapper)
     ? keysOrMapper.reduce((reduced, key) => {
-        reduced[key] = function (...args) {
+        reduced[key] = function (...args: Array<any>) {
           return useStore()[key](...args)
         }
         return reduced
       })
-    : Object.keys(keysOrMapper).reduce((reduced, key) => {
-        reduced[key] = function (...args) {
+    : Object.keys(keysOrMapper).reduce((reduced: Record<string, Object>, key) => {
+        reduced[key] = function (...args: Array<any>) {
           const store = useStore()
           const storeKey = keysOrMapper[key]
           return store[storeKey](...args)
